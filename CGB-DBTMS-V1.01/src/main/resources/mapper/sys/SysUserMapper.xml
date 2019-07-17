@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cy.pj.sys.dao.SysUserDao">
+   
+   <update id="updateObject">
+       update sys_users
+       set username=#{username},
+           deptId=#{deptId},
+           email=#{email},
+           mobile=#{mobile},
+           modifiedTime=now(),
+           modifiedUser=#{modifiedUser}
+       where id=#{id}
+   </update>
+   
+   <select id="findObjectById"
+           resultMap="sysUserDeptVo">
+        select * from sys_users where id=#{id}
+   </select>
+   
+   <insert id="insertObject"
+           parameterType="com.cy.pj.sys.entity.SysUser"
+           useGeneratedKeys="true"
+           keyProperty="id">
+      insert into sys_users
+      (username,password,deptId,email,mobile,salt,valid,
+      createdTime,modifiedTime,createdUser,modifiedUser)
+      values
+      (#{username},#{password},#{deptId},#{email},#{mobile},#{salt},#{valid},
+      now(),now(),#{createdUser},#{modifiedUser})
+   </insert>
+   
+   <!-- 提取sql共性 -->
+   <sql id="queryWhereId">
+       from sys_users
+       <where>
+          <if test="name!=null and name!=''">
+          username like concat("%",#{name},"%")
+          </if>
+       </where>
+   </sql>
+   <resultMap id="sysUserDeptVo"
+              type="com.cy.pj.sys.vo.SysUserDeptVo">
+              <!-- many2one,one2one -->
+              <association property="sysDept"
+                      column="deptId"
+                      select="com.cy.pj.sys.dao.SysDeptDao.findById">
+              </association>
+   </resultMap>
+   <!-- 分页查询 -->
+   <select id="findPageObjects"
+           resultMap="sysUserDeptVo">
+          select *
+          <include refid="queryWhereId"/>
+          order by createdTime desc
+          limit #{startIndex},#{pageSize}
+   </select>
+   <!-- 统计记录总数 -->
+   <select id="getRowCount" resultType="int">
+       select count(*)
+       <include refid="queryWhereId"/>
+   </select>
+   
+  
+   
+</mapper>
